@@ -1,6 +1,6 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import { GameState, FruitType, Entity, Particle, TrailPoint, FloatingText } from '../types';
-import { GRAVITY, BLADE_LIFETIME, BLADE_WIDTH, BLADE_COLOR, BLADE_GLOW, FRUIT_CONFIG, MAX_LIVES, SPAWN_RATE_INITIAL, DIFFICULTY_RAMP, SPAWN_RATE_MIN, SLICE_MIN_VELOCITY } from '../constants';
+import { GRAVITY, BLADE_LIFETIME, BLADE_WIDTH, BLADE_COLOR, BLADE_GLOW, FRUIT_CONFIG, MAX_LIVES, SPAWN_RATE_INITIAL, SPAWN_RATE_MIN } from '../constants';
 import { soundManager } from '../utils/sound';
 import { gameStore } from '../store';
 
@@ -48,7 +48,6 @@ export const GameEngine: React.FC<GameEngineProps> = ({
     mouseVy: 0,
     lastInputTime: 0,
     isMouseDown: false,
-    mouseSpeed: 0,
     comboCount: 0,
     comboTimer: 0,
     frameCount: 0,
@@ -80,11 +79,7 @@ export const GameEngine: React.FC<GameEngineProps> = ({
     });
   }, [setGameRef, onScoreUpdate, onLivesUpdate]);
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d', { alpha: false });
-    if (!ctx) return;
+  // --- LOGIC HELPERS ---
 
     // Handle Resize
     const handleResize = () => {
@@ -99,9 +94,6 @@ export const GameEngine: React.FC<GameEngineProps> = ({
         ctx.fillStyle = '#111';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
       }
-    };
-    window.addEventListener('resize', handleResize);
-    handleResize();
 
     // --- INPUT HANDLING ---
 
@@ -224,7 +216,16 @@ export const GameEngine: React.FC<GameEngineProps> = ({
     canvas.addEventListener('pointercancel', onPointerUp);
     canvas.addEventListener('pointerleave', onPointerUp);
 
-    // --- GAME LOGIC ---
+    const handleResize = () => {
+      if (canvas.parentElement) {
+        canvas.width = canvas.parentElement.clientWidth;
+        canvas.height = canvas.parentElement.clientHeight;
+        stateRef.current.width = canvas.width;
+        stateRef.current.height = canvas.height;
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    handleResize();
 
     const spawnFruit = () => {
       const { width, height, difficulty } = stateRef.current;
@@ -242,18 +243,15 @@ export const GameEngine: React.FC<GameEngineProps> = ({
 
       stateRef.current.fruits.push({
         id: Math.random().toString(36).substr(2, 9),
-        x,
-        y,
-        vx,
-        vy,
+        x, y, vx, vy,
         rotation: Math.random() * Math.PI * 2,
-        vr: (Math.random() - 0.5) * 0.2,
+        vr: (Math.random() - 0.5) * 0.1,
         scale: 1,
-        color: FRUIT_CONFIG[type].color,
+        color: config.color,
         type,
         isSliced: false,
         isDead: false,
-        radius
+        radius: config.radius
       });
     };
 
@@ -467,7 +465,6 @@ export const GameEngine: React.FC<GameEngineProps> = ({
       ctx.restore();
     };
 
-    // --- MAIN LOOP ---
     let animationFrameId: number;
     const loop = () => {
       if (gameState !== GameState.PLAYING) {
@@ -489,7 +486,7 @@ export const GameEngine: React.FC<GameEngineProps> = ({
       ctx.fillStyle = '#1e1e1e';
       const gradient = ctx.createRadialGradient(width / 2, height / 2, 0, width / 2, height / 2, width);
       gradient.addColorStop(0, '#2c3e50');
-      gradient.addColorStop(1, '#000000');
+      gradient.addColorStop(1, '#111');
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, width, height);
 
@@ -516,17 +513,22 @@ export const GameEngine: React.FC<GameEngineProps> = ({
         stateRef.current.comboCount = 0;
       }
 
-      // Trail Logic
-      if (stateRef.current.isMouseDown) {
-        trail.push({ x: stateRef.current.mouseX, y: stateRef.current.mouseY, age: BLADE_LIFETIME });
-      }
-      for (let i = trail.length - 1; i >= 0; i--) {
-        trail[i].age--;
-        if (trail[i].age <= 0) trail.splice(i, 1);
+        // Spawning
+        const currentSpawnRate = Math.max(SPAWN_RATE_MIN, SPAWN_RATE_INITIAL - (stateRef.current.difficulty * 50));
+        if (stateRef.current.frameCount % Math.floor(currentSpawnRate) === 0) {
+           spawnFruit();
+        }
+        
+        // Combo Timer
+        if (stateRef.current.comboTimer > 0) {
+          stateRef.current.comboTimer--;
+        } else {
+          stateRef.current.comboCount = 0;
+        }
       }
 
-      // Draw Trail
-      if (trail.length > 1) {
+      // Render Trail
+      if (trail.length > 0) {
         ctx.beginPath();
         ctx.moveTo(trail[0].x, trail[0].y);
         for (let i = 1; i < trail.length; i++) {
@@ -545,14 +547,18 @@ export const GameEngine: React.FC<GameEngineProps> = ({
         ctx.shadowBlur = 0;
       }
 
-      // Fruits
+      // Update & Draw Fruits
       for (let i = fruits.length - 1; i >= 0; i--) {
         const f = fruits[i];
-        f.x += f.vx;
-        f.y += f.vy;
-        f.vy += GRAVITY;
-        f.rotation += f.vr;
+        
+        if (gameState === GameState.PLAYING) {
+          f.x += f.vx;
+          f.y += f.vy;
+          f.vy += GRAVITY;
+          f.rotation += f.vr;
+        }
 
+        // Out of bounds
         if (f.y > height + 100) {
           if (!f.isSliced && f.type !== FruitType.BOMB && gameStore.settings.gameMode === 'CLASSIC') {
             stateRef.current.lives--;
@@ -562,13 +568,16 @@ export const GameEngine: React.FC<GameEngineProps> = ({
               onGameOver();
             }
           }
-          fruits.splice(i, 1);
+          if (f.y > height + 400) {
+             fruits.splice(i, 1);
+          }
           continue;
         }
+        
         drawFruit(f);
       }
 
-      // Particles
+      // Update & Draw Particles
       for (let i = particles.length - 1; i >= 0; i--) {
         const p = particles[i];
         p.x += p.vx;
@@ -609,7 +618,7 @@ export const GameEngine: React.FC<GameEngineProps> = ({
         ctx.restore();
       }
 
-      // Floating Text
+      // Update & Draw Text
       for (let i = floatingTexts.length - 1; i >= 0; i--) {
         const t = floatingTexts[i];
         t.y -= 1;
@@ -647,7 +656,7 @@ export const GameEngine: React.FC<GameEngineProps> = ({
       canvas.removeEventListener('pointercancel', onPointerUp);
       canvas.removeEventListener('pointerleave', onPointerUp);
     };
-  }, [gameState, onGameOver, onScoreUpdate, onLivesUpdate]);
+  }, [gameState, onGameOver, onScoreUpdate, onLivesUpdate, checkForSlice]);
 
   return (
     <canvas

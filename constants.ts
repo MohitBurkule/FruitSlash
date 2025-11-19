@@ -1,13 +1,13 @@
 import { FruitType } from './types';
 
-export const GRAVITY = 0.25;
+export const GRAVITY = 0.15; // Lowered from 0.25 for floatier, easier gameplay
 export const BLADE_LIFETIME = 15; // Frames
 export const BLADE_WIDTH = 8;
 export const BLADE_COLOR = '#ffffff';
 export const BLADE_GLOW = '#00eaff';
 
-export const SPAWN_RATE_INITIAL = 60; // Frames between spawns
-export const SPAWN_RATE_MIN = 20;
+export const SPAWN_RATE_INITIAL = 50; // Frames between spawns
+export const SPAWN_RATE_MIN = 15;
 export const DIFFICULTY_RAMP = 0.05; // How much spawn rate decreases per second
 
 export const FRUIT_CONFIG = {
@@ -19,4 +19,4 @@ export const FRUIT_CONFIG = {
 };
 
 export const MAX_LIVES = 3;
-export const SLICE_MIN_VELOCITY = 5; // Minimum mouse speed to register a cut
+export const SLICE_MIN_VELOCITY = 2; // Reduced threshold (used for blade rotation logic only now)
