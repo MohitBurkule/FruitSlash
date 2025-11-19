@@ -1,20 +1,59 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# 🍉 Fruit Samurai
 
-# Run and deploy your AI Studio app
+A high-octane fruit slicing game built with **React**, **TypeScript**, and **HTML5 Canvas**. Slice fruits, avoid bombs, and become the ultimate samurai!
 
-This contains everything you need to run your app locally.
+## 🎮 Features
 
-View your app in AI Studio: https://ai.studio/apps/drive/1iJ7lFkSyWaTXKwU1fwIfwwnt6MSy0_KV
+- **Smooth Slicing Mechanics**: Optimized for both mouse and touch input with custom physics.
+- **Two Game Modes**:
+  - **Classic**: Missed fruits cost lives. Bombs are instant game over.
+  - **Zen**: Relaxed gameplay. Only bombs end the game. No penalty for missed fruits.
+- **Progression System**: Earn XP, level up, and track your high scores.
+- **Dynamic Difficulty**: The game gets faster and more intense the longer you survive.
+- **Settings & Accessibility**:
+  - Master volume controls for Music and SFX.
+  - High Contrast mode.
+  - Reduced Motion options.
+- **Juicy Visuals**: Particle effects, screen shake, and satisfying slice animations.
 
-## Run Locally
+## 🛠️ Tech Stack
 
-**Prerequisites:**  Node.js
+- **Frontend**: React 18, TypeScript
+- **Styling**: TailwindCSS
+- **Graphics**: HTML5 Canvas API (Custom engine)
+- **Audio**: Web Audio API
+- **State Management**: React Context + Local Storage persistence
+- **Build Tool**: Vite
 
+## 🚀 Run Locally
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd FruitSlash
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Start the development server**
+   ```bash
+   npm run dev
+   ```
+
+4. **Open in browser**
+   Navigate to `http://localhost:5173` (or the port shown in your terminal).
+
+## 🕹️ How to Play
+
+- **Desktop**: Click and drag your mouse across the screen to slice fruits.
+- **Mobile/Tablet**: Swipe your finger across the screen.
+- **Objective**: Slice as many fruits as possible to earn points and XP.
+- **Combos**: Slice 3 or more fruits in a single swipe for massive bonus points!
+- **Avoid**: Do NOT slice the bombs! 💣
+
+## 📝 License
+
+MIT
