@@ -91,6 +91,10 @@ export const GameEngine: React.FC<GameEngineProps> = ({
         canvas.height = parent.clientHeight;
         stateRef.current.width = canvas.width;
         stateRef.current.height = canvas.height;
+        
+        // Immediate initial draw to prevent black flicker
+        ctx.fillStyle = '#111'; 
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
       }
     };
     window.addEventListener('resize', handleResize);
