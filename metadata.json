@@ -1,0 +1,5 @@
+{
+  "name": "Fruit Samurai",
+  "description": "A high-octane, arcade-style fruit slicing game featuring physics-based splitting, particle effects, combo systems, and synthesized sound effects. Built with React and HTML5 Canvas.",
+  "requestFramePermissions": []
+}
