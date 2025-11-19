@@ -68,3 +68,29 @@ export interface TrailPoint {
   y: number;
   age: number; // frames alive
 }
+
+export interface GameSettings {
+  musicVolume: number; // 0 to 1
+  sfxVolume: number; // 0 to 1
+  highContrast: boolean;
+  reducedMotion: boolean;
+  gameMode: 'CLASSIC' | 'ZEN';
+}
+
+export interface UnlockableItem {
+  id: string;
+  type: 'BLADE' | 'BACKGROUND';
+  name: string;
+  description: string;
+  cost: number; // XP cost or Level requirement
+  isUnlocked: boolean;
+}
+
+export interface GameProgress {
+  totalXp: number;
+  level: number;
+  highScore: number;
+  unlockedItems: string[]; // IDs of unlocked items
+  equippedBlade: string;
+  equippedBackground: string;
+}
